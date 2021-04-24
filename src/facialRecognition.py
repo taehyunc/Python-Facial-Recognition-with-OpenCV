@@ -3,6 +3,7 @@ import cv2
 
 #Use Default Video Camera device
 cap = cv2.VideoCapture(0)
+imageType = ".png"
 
 # Different Resolutions to adjust camera capture
 # 3 -> width
@@ -19,7 +20,7 @@ def make_480p():
     cap.set(3, 640)
     cap.set(4, 480)
 
-def change_res(width, height):
+def changeRes(width, height):
     cap.set(3, width)
     cap.set(4, height)
 
@@ -32,13 +33,27 @@ def rescale_frame(frame, percent=75):
     dim = (width, height)
     return cv2.resize(frame, dim, interpolation =cv2.INTER_AREA)
 
+faceCascade = cv2.CascadeClassifier('cascades/data/haarcascade_frontalface_alt2.xml')
+
 # Continuous usage of the video
 while(True):
     ret, frame = cap.read()
     frame = rescale_frame(frame, percent=150)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = faceCascade.detectMultiScale(gray, scaleFactor=1.5, minNeighbors=5)
+    for (x,y,w,h) in faces:
+        print(x,y,w,h)
+        roiGray = gray[y:y+h, x:x+w]
+        # This will save just your face and save into directory
+        imgItem = "myFace" + imageType
+        # cv2.imwrite(imgItem, roiGray)
+
+        colorRectangle = (255, 0, 0) #BGR 0-255
+        strokeRectangle = 2 #Thickness of the rectangle frames
+        endCordX = x + w #End coordinates of where face ends in x axis
+        endCordY = y + h #End coordinates of where face ends in y axis
+        cv2.rectangle(frame, (x,y), (endCordX, endCordY), colorRectangle, strokeRectangle)
     cv2.imshow('frame',frame)
-    # Shows camera in gray frame
-    # cv2.imshow('gray',gray)
 
     # Display the resulting frame -- Hit q to exit the application
     if cv2.waitKey(20) & 0xFF == ord('q'):
